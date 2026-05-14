@@ -1,1 +1,2 @@
 rootProject.name = 'NullBrand'
+include 'bukkit', 'sponge'

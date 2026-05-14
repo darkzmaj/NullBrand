@@ -1,0 +1,9 @@
+﻿{
+  "id": "nullbrand",
+  "name": "NullBrand",
+  "version": "2.0.0",
+  "description": "Premium server-list branding engine — MOTD, favicon, fake players, animations and more.",
+  "authors": ["Terona Studios"],
+  "main": "si.terona.nullbrand.NullBrand",
+  "dependencies": []
+}

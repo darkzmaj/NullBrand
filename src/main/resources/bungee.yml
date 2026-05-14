@@ -1,0 +1,5 @@
+﻿name: NullBrand
+main: si.terona.nullbrand.NullBrand$Bungee
+version: 2.0.0
+author: Terona Studios
+description: Premium server-list branding engine for BungeeCord and Waterfall.

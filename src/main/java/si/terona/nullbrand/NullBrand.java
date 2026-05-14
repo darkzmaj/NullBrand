@@ -1,90 +1,113 @@
 package si.terona.nullbrand;
-
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
-import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
-import com.velocitypowered.api.proxy.messages.LegacyChannelIdentifier;
-import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
-import java.io.IOException;
-import java.nio.file.Path;
 import org.slf4j.Logger;
-import si.terona.nullbrand.command.ReloadCommand;
-import si.terona.nullbrand.listener.BrandingListener;
+import si.terona.nullbrand.api.NullBrandAPI;
+import si.terona.nullbrand.command.NullBrandCommand;
+import si.terona.nullbrand.engine.BrandEngine;
 import si.terona.nullbrand.listener.MotdListener;
-import si.terona.nullbrand.util.ConfigUtil;
-
+import si.terona.nullbrand.util.LogUtil;
+import java.nio.file.Path;
+/**
+ * NullBrand — Premium Server-List Branding Engine.
+ * Version 2.0.0
+ *
+ * <p>Supports: Velocity · BungeeCord · Waterfall · Spigot · Paper
+ */
 @Plugin(
         id = "nullbrand",
         name = "NullBrand",
-        version = "1.0.0",
-        description = "Ultra-lightweight proxy branding and MOTD plugin",
+        version = "2.0.0",
+        description = "Premium server-list branding engine — MOTD, favicon, fake players, animations & more.",
         authors = {"Terona Studios"}
 )
 public final class NullBrand {
-
     private final ProxyServer proxy;
-    private final Logger logger;
+    private final Logger slf4jLogger;
     private final Path dataDirectory;
-    private final ChannelIdentifier brandModern = MinecraftChannelIdentifier.create("minecraft", "brand");
-    private final ChannelIdentifier brandLegacy = LegacyChannelIdentifier.from("MC|Brand");
-    private ConfigUtil config;
-
+    private BrandEngine engine;
+    private LogUtil log;
     @Inject
     public NullBrand(ProxyServer proxy, Logger logger, @DataDirectory Path dataDirectory) {
         this.proxy = proxy;
-        this.logger = logger;
+        this.slf4jLogger = logger;
         this.dataDirectory = dataDirectory;
     }
-
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        this.config = new ConfigUtil(dataDirectory);
-        reload();
-        proxy.getChannelRegistrar().register(brandModern, brandLegacy);
-        proxy.getEventManager().register(this, new MotdListener.Velocity(config));
-        proxy.getEventManager().register(this, new BrandingListener.Velocity(config, brandModern, brandLegacy));
-        proxy.getCommandManager().register("nullbrand", new ReloadCommand.Velocity(this), "nb");
-    }
-
-    public void reload() {
-        try {
-            config.load(getClass().getClassLoader());
-        } catch (IOException e) {
-            logger.error("Failed to load config.yml", e);
+        log = LogUtil.ofSlf4j(slf4jLogger, false);
+        engine = new BrandEngine(log, "Velocity");
+        NullBrandAPI.init(engine);
+        if (!engine.load(dataDirectory, getClass().getClassLoader())) {
+            log.error("Failed to load configuration. Plugin may not function correctly.");
         }
+        proxy.getEventManager().register(this, new MotdListener.Velocity(engine));
+        proxy.getCommandManager().register("nullbrand",
+                new NullBrandCommand.Velocity(engine, dataDirectory, getClass().getClassLoader()), "nb");
+        log.info("NullBrand 2.0.0 online on Velocity.");
     }
-
-    public ConfigUtil config() {
-        return config;
+    @Subscribe
+    public void onProxyShutdown(ProxyShutdownEvent event) {
+        if (engine != null) engine.shutdown();
     }
-
+    // -------------------------------------------------------------------------
+    // BungeeCord / Waterfall entry point
+    // -------------------------------------------------------------------------
     public static final class Bungee extends net.md_5.bungee.api.plugin.Plugin {
-
-        private ConfigUtil config;
-
+        private BrandEngine engine;
+        private LogUtil log;
         @Override
         public void onEnable() {
-            config = new ConfigUtil(getDataFolder().toPath());
-            reload();
-            getProxy().getPluginManager().registerListener(this, new MotdListener.Bungee(config));
-            getProxy().getPluginManager().registerListener(this, new BrandingListener.Bungee(config));
-            getProxy().getPluginManager().registerCommand(this, new ReloadCommand.Bungee(this));
-        }
-
-        public void reload() {
-            try {
-                config.load(getClass().getClassLoader());
-            } catch (IOException e) {
-                getLogger().severe("Failed to load config.yml: " + e.getMessage());
+            log = new LogUtil(getLogger(), false);
+            engine = new BrandEngine(log, "BungeeCord");
+            NullBrandAPI.init(engine);
+            Path dataDir = getDataFolder().toPath();
+            if (!engine.load(dataDir, getClass().getClassLoader())) {
+                log.error("Failed to load configuration. Plugin may not function correctly.");
             }
+            getProxy().getPluginManager().registerListener(this, new MotdListener.Bungee(engine));
+            getProxy().getPluginManager().registerCommand(this,
+                    new NullBrandCommand.Bungee(engine, dataDir, getClass().getClassLoader()));
+            log.info("NullBrand 2.0.0 online on BungeeCord/Waterfall.");
         }
-
-        public ConfigUtil config() {
-            return config;
+        @Override
+        public void onDisable() {
+            if (engine != null) engine.shutdown();
+        }
+    }
+    // -------------------------------------------------------------------------
+    // Spigot / Paper entry point
+    // -------------------------------------------------------------------------
+    public static final class Spigot extends org.bukkit.plugin.java.JavaPlugin {
+        private BrandEngine engine;
+        private LogUtil log;
+        @Override
+        public void onEnable() {
+            log = new LogUtil(getLogger(), false);
+            engine = new BrandEngine(log, "Spigot");
+            NullBrandAPI.init(engine);
+            Path dataDir = getDataFolder().toPath();
+            if (!engine.load(dataDir, getClass().getClassLoader())) {
+                log.error("Failed to load configuration. Plugin may not function correctly.");
+            }
+            getServer().getPluginManager().registerEvents(new MotdListener.Spigot(engine), this);
+            org.bukkit.command.PluginCommand cmd = getCommand("nullbrand");
+            if (cmd != null) {
+                NullBrandCommand.Spigot handler =
+                        new NullBrandCommand.Spigot(engine, dataDir, getClass().getClassLoader());
+                cmd.setExecutor(handler);
+                cmd.setTabCompleter(handler);
+            }
+            log.info("NullBrand 2.0.0 online on Spigot/Paper.");
+        }
+        @Override
+        public void onDisable() {
+            if (engine != null) engine.shutdown();
         }
     }
 }

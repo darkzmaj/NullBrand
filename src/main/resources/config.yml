@@ -1,0 +1,157 @@
+﻿# =============================================================
+# NullBrand 2.0.0 — Premium Server-List Branding Engine
+# =============================================================
+# Docs: https://github.com/TeronaST/NullBrand
+# =============================================================
+# Enable debug logging (verbose startup info)
+debug: false
+# =============================================================
+# MOTD SETTINGS
+# =============================================================
+motd:
+  enabled: true
+  # Default active profile
+  profile: "default"
+  # Global favicon file (inside /plugins/NullBrand/favicons/)
+  favicon: "logo.png"
+# =============================================================
+# MAINTENANCE MODE
+# =============================================================
+maintenance:
+  enabled: false
+  profile: "maintenance"
+# =============================================================
+# FAKE PLAYER ENGINE (global default, can be overridden per-profile)
+# Modes: STATIC | RANDOM | SMART | TIME_BASED
+# =============================================================
+fakeplayers:
+  enabled: false
+  mode: STATIC
+  amount: 250        # STATIC mode: add this many fake players
+  min: 120           # RANDOM mode: minimum
+  max: 280           # RANDOM mode: maximum
+  multiplier: 1.8    # SMART mode: multiply real count by this
+  minimum: 50        # SMART mode: minimum floor bonus
+  cache-ticks: 20    # RANDOM mode: refresh interval in ticks (50ms each)
+# =============================================================
+# MAX PLAYERS OVERRIDE (global default, can be overridden per-profile)
+# =============================================================
+maxplayers:
+  enabled: false
+  amount: 9999
+# =============================================================
+# CUSTOM PLAYERCOUNT TEXT / ANIMATION
+# Overrides the player count hover tooltip in the server list
+# =============================================================
+playercount:
+  enabled: false
+  text:
+    enabled: false
+    value: "<#ff00ff>NullBrand Network"
+  animation:
+    enabled: false
+    interval: 20
+    frames:
+      - "<#ff0000>✦ PLAY NOW ✦"
+      - "<#00ff00>✦ JOIN TODAY ✦"
+      - "<#0000ff>✦ NULLBRAND ✦"
+# =============================================================
+# PROFILE ROTATION
+# =============================================================
+rotation:
+  enabled: false
+  interval: 300  # seconds
+  profiles:
+    - default
+    - event
+# =============================================================
+# PING PROTECTION / RATE LIMITING
+# =============================================================
+pingprotection:
+  enabled: true
+  cooldown-ms: 500    # minimum ms between pings from same IP
+  max-per-second: 10  # reserved for future burst limiting
+# =============================================================
+# LANGUAGE / MESSAGES
+# Supports legacy color codes (&a, &c, etc.)
+# =============================================================
+lang:
+  reload: "&aNullBrand reloaded successfully."
+  no-permission: "&cYou don't have permission."
+  profile-switched: "&aActive profile switched to: &e%profile%"
+  maintenance-on: "&aMaintenance mode &cenabled&a."
+  maintenance-off: "&aMaintenance mode &adisabled&a."
+  unknown-profile: "&cUnknown profile: &e%profile%"
+  fakeplayers-set: "&aFake players set to: &e%amount%"
+  status: "&7--- &5NullBrand &7Status ---\n&7Profile: &f%profile%\n&7Maintenance: &f%maintenance%\n&7FakePlayers: &f%fakeplayers%"
+# =============================================================
+# MOTD PROFILES
+# =============================================================
+# Available placeholders in lines / hover / animations:
+#   %online%         - real online count
+#   %max_players%    - real max players
+#   %display_online% - displayed online (with fake players)
+#   %display_max%    - displayed max players
+#   %time%           - current time (HH:mm:ss)
+#   %date%           - current date (yyyy-MM-dd)
+#   %profile%        - active profile name
+#   %platform%       - server platform
+#   %newline%        - newline character
+#
+# Text supports:
+#   &a, &b, &c...   - legacy color codes
+#   &#RRGGBB         - hex colors (most platforms)
+#   <#RRGGBB>        - hex colors (MiniMessage, Velocity/Paper)
+#   <gradient:#xx:#yy>text</gradient> - gradients (Velocity/Paper)
+#   <rainbow>text</rainbow>           - rainbow (Velocity/Paper)
+# =============================================================
+profiles:
+  # Fallback profile (used if active profile is missing)
+  global:
+    lines:
+      - "&7Welcome to our server"
+      - "&fHave fun!"
+  # Default server branding
+  default:
+    lines:
+      - "<gradient:#ff00ff:#00ffff>NullBrand Network"
+      - "<#aaaaaa>▶ <white>%display_online%</white> players online"
+    hover:
+      enabled: true
+      random: false
+      lines:
+        - "&7Welcome to &5Null&dBrand"
+        - "&7Running powerful infrastructure"
+        - "&7Players online: &f%display_online%"
+    # Leave out fakeplayers/maxplayers/playercount to inherit global defaults
+    animation:
+      enabled: false
+      interval: 40
+      frames:
+        - "<gradient:#ff00ff:#00ffff>NullBrand Network"
+        - "<gradient:#00ffff:#ff00ff>NullBrand Network"
+  # Live event MOTD
+  event:
+    lines:
+      - "&6&lSpecial Event &e&lLive Now!"
+      - "&eJoin now and claim your rewards!"
+    hover:
+      enabled: true
+      random: true
+      lines:
+        - "&6Limited time event — join fast!"
+        - "&ePrizes and rewards await!"
+        - "&aEvent ends this weekend!"
+  # Maintenance mode MOTD
+  maintenance:
+    lines:
+      - "&c&lServer Maintenance"
+      - "&7We'll be back shortly. Follow us for updates."
+    hover:
+      enabled: true
+      lines:
+        - "&cMaintenance in progress"
+        - "&7Check our Discord for live updates"
+    maxplayers:
+      enabled: true
+      amount: 0

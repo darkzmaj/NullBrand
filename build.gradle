@@ -3,19 +3,24 @@ plugins {
 }
 
 group = 'si.terona'
-version = '1.0.0'
+version = '2.0.0'
 
 repositories {
     mavenCentral()
     maven {
         url = 'https://repo.papermc.io/repository/maven-public/'
     }
+    maven {
+        url = 'https://repo.md-5.net/content/repositories/snapshots/'
+    }
 }
 
 dependencies {
     compileOnly 'com.velocitypowered:velocity-api:3.3.0-SNAPSHOT'
     annotationProcessor 'com.velocitypowered:velocity-api:3.3.0-SNAPSHOT'
-    compileOnly 'net.md-5:bungeecord-api:1.20-R0.1-SNAPSHOT'
+    compileOnly 'net.md-5:bungeecord-api:1.21-R0.4'
+    compileOnly 'io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT'
+    compileOnly 'org.yaml:snakeyaml:2.0'
 }
 
 java {
@@ -25,4 +30,8 @@ java {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release.set(17)
+}
+
+tasks.jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
