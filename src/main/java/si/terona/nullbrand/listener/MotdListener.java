@@ -162,7 +162,7 @@ public final class MotdListener {
             if (state == null || !state.config().isMotdEnabled()) return;
             if (event.getResponse() == null) return;
             String ip = null;
-            try { ip = event.getConnection().getAddress().getAddress().getHostAddress(); }
+            try { ip = ((java.net.InetSocketAddress) event.getConnection().getSocketAddress()).getAddress().getHostAddress(); }
             catch (Throwable ignored) {}
             if (state.rateLimiter().isBlocked(ip)) return;
             MotdProfile profile;
@@ -172,7 +172,7 @@ public final class MotdListener {
             int realMax = response.getPlayers() != null ? response.getPlayers().getMax() : 0;
             PlaceholderEngine.PingContext ctx = buildContext(state, profile, realOnline, realMax);
             String resolvedMotd = resolveMotd(state, profile, ctx);
-            response.setDescription(si.terona.nullbrand.util.ColorUtil.translate(resolvedMotd));
+            response.setDescriptionComponent(net.md_5.bungee.api.chat.TextComponent.fromLegacy(si.terona.nullbrand.util.ColorUtil.translate(resolvedMotd)));
             // Player counts
             if (response.getPlayers() != null) {
                 response.getPlayers().setOnline(ctx.displayOnline());
@@ -211,6 +211,7 @@ public final class MotdListener {
         public void onPing(org.bukkit.event.server.ServerListPingEvent event) {
             handleSpigot(event);
         }
+        @SuppressWarnings("deprecation") // Plain Spigot exposes the legacy string MOTD API.
         private void handleSpigot(org.bukkit.event.server.ServerListPingEvent event) {
             EngineState state = engine.state();
             if (state == null || !state.config().isMotdEnabled()) return;
@@ -252,7 +253,7 @@ public final class MotdListener {
             int realMax = event.getMaxPlayers();
             PlaceholderEngine.PingContext ctx = buildContext(state, profile, realOnline, realMax);
             String resolvedMotd = resolveMotd(state, profile, ctx);
-            event.setMotd(MotdRenderer.toLegacy(resolvedMotd));
+            event.motd(MotdRenderer.toMotdComponent(resolvedMotd));
             MaxPlayersSettings maxSettings = profile.getMaxPlayersSettings();
             if (maxSettings.isEnabled()) event.setMaxPlayers(maxSettings.getAmount());
             FaviconStore fav = state.faviconFor(profile.getName());

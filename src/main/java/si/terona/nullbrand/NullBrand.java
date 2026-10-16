@@ -47,8 +47,9 @@ public final class NullBrand {
             log.error("Failed to load configuration. Plugin may not function correctly.");
         }
         proxy.getEventManager().register(this, new MotdListener.Velocity(engine));
-        proxy.getCommandManager().register("nullbrand",
-                new NullBrandCommand.Velocity(engine, dataDirectory, getClass().getClassLoader()), "nb");
+        proxy.getCommandManager().register(proxy.getCommandManager().metaBuilder("nullbrand")
+                .aliases("nb").plugin(this).build(),
+                new NullBrandCommand.Velocity(engine, dataDirectory, getClass().getClassLoader()));
         log.info("NullBrand 2.0.1 online on Velocity.");
     }
     @Subscribe

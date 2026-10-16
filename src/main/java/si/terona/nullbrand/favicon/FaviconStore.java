@@ -56,7 +56,7 @@ public final class FaviconStore {
             Object bungee = null;
             Object spigot = null;
             try { velocity = com.velocitypowered.api.util.Favicon.create(image); } catch (LinkageError | RuntimeException ignored) {}
-            try { bungee = net.md_5.bungee.api.Favicon.create(base64); } catch (LinkageError | RuntimeException ignored) {}
+            try { bungee = net.md_5.bungee.api.Favicon.create(image); } catch (LinkageError | RuntimeException ignored) {}
             try { spigot = org.bukkit.Bukkit.loadServerIcon(image); } catch (LinkageError | Exception ignored) {}
             return new FaviconStore(base64, velocity, bungee, spigot);
         } catch (java.io.IOException | RuntimeException e) {
