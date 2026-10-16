@@ -41,7 +41,7 @@ public final class NullBrandCommand {
         }
         EngineState state = engine.state();
         LangSettings lang = state != null ? state.config().getLangSettings() : LangSettings.defaults();
-        switch (args[0].toLowerCase()) {
+        switch (args[0].toLowerCase(java.util.Locale.ROOT)) {
             case "reload" -> {
                 if (!sender.hasPermission("nullbrand.reload") && !sender.hasPermission("nullbrand.admin")) {
                     sender.send(lang.getNoPermission());
@@ -112,7 +112,7 @@ public final class NullBrandCommand {
                         ? s.config().getGlobalFakePlayerSettings().getMode().name()
                         : "disabled";
                 String status = lang.getStatus()
-                        .replace("%platform%", s.config().getActiveProfile())
+                        .replace("%platform%", engine.platform())
                         .replace("%profile%", s.profileManager().getActiveProfileName())
                         .replace("%maintenance%", maint ? "ENABLED" : "disabled")
                         .replace("%fakeplayers%", fakeInfo);
@@ -162,7 +162,10 @@ public final class NullBrandCommand {
         @Override
         public boolean hasPermission(Invocation inv) {
             return inv.source().hasPermission("nullbrand.admin")
-                    || inv.source().hasPermission("nullbrand.reload");
+                    || inv.source().hasPermission("nullbrand.reload")
+                    || inv.source().hasPermission("nullbrand.profile.switch")
+                    || inv.source().hasPermission("nullbrand.maintenance")
+                    || inv.source().hasPermission("nullbrand.fakeplayers");
         }
         @Override
         public List<String> suggest(Invocation inv) {
@@ -178,7 +181,7 @@ public final class NullBrandCommand {
         private final Path dataDir;
         private final ClassLoader cl;
         public Bungee(BrandEngine engine, Path dataDir, ClassLoader cl) {
-            super("nullbrand", "nullbrand.admin", "nb");
+            super("nullbrand", null, "nb");
             this.engine = engine;
             this.dataDir = dataDir;
             this.cl = cl;

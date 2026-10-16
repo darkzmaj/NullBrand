@@ -60,7 +60,7 @@ public final class ConfigLoader {
     private FakePlayerSettings loadFakePlayer(Map<String, Object> s, String context) {
         boolean enabled = bool(s, "enabled", false);
         if (!enabled) return FakePlayerSettings.DISABLED;
-        String modeStr = str(s, "mode", "STATIC").toUpperCase();
+        String modeStr = str(s, "mode", "STATIC").toUpperCase(Locale.ROOT);
         FakePlayerMode mode;
         try { mode = FakePlayerMode.valueOf(modeStr); }
         catch (IllegalArgumentException e) {
@@ -83,8 +83,8 @@ public final class ConfigLoader {
         boolean enabled = bool(s, "enabled", false);
         if (!enabled) return MaxPlayersSettings.DISABLED;
         int amount = integer(s, "amount", 9999);
-        if (amount < 1) {
-            warnings.add("maxplayers.amount must be >= 1 in " + context + " — using 9999.");
+        if (amount < 0) {
+            warnings.add("maxplayers.amount must be >= 0 in " + context + " — using 9999.");
             amount = 9999;
         }
         return new MaxPlayersSettings(true, amount);
@@ -181,15 +181,20 @@ public final class ConfigLoader {
     @SuppressWarnings("unchecked")
     private Map<String, Object> parseYaml(Path path) {
         try (Reader reader = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
-            Yaml yaml = new Yaml();
+            org.yaml.snakeyaml.LoaderOptions options = new org.yaml.snakeyaml.LoaderOptions();
+            options.setAllowDuplicateKeys(false);
+            options.setMaxAliasesForCollections(20);
+            options.setCodePointLimit(1_048_576);
+            Yaml yaml = new Yaml(new org.yaml.snakeyaml.constructor.SafeConstructor(options));
             Object loaded = yaml.load(reader);
             if (loaded instanceof Map) return (Map<String, Object>) loaded;
+            if (loaded == null) return Collections.emptyMap();
+            throw new IllegalArgumentException("config.yml must contain a mapping");
         } catch (YAMLException e) {
-            warnings.add("YAML parse error in config.yml: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid YAML in config.yml; previous configuration retained (check syntax, duplicate keys and unsupported tags)");
         } catch (IOException e) {
-            warnings.add("Cannot read config.yml: " + e.getMessage());
+            throw new IllegalArgumentException("Cannot read config.yml; previous configuration retained", e);
         }
-        return null;
     }
     private void ensureDirectories(Path dir) {
         try {

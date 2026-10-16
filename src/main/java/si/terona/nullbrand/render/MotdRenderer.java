@@ -22,12 +22,15 @@ public final class MotdRenderer {
         } catch (ClassNotFoundException ignored) {}
         MINI_MESSAGE_AVAILABLE = available;
     }
+    // Lazy holder prevents loading Adventure classes on BungeeCord.
+    private static final class Adventure {
     private static final net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer LEGACY_SERIALIZER =
             net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.builder()
                     .character('\u00A7')
                     .hexColors()
                     .useUnusualXRepeatedCharacterHexFormat()
                     .build();
+    }
     private MotdRenderer() {}
     /**
      * Convert raw text to a section-sign legacy string.
@@ -39,6 +42,7 @@ public final class MotdRenderer {
      */
     public static String toLegacy(String raw) {
         if (raw == null) return "";
+        if (MINI_MESSAGE_AVAILABLE) return Adventure.LEGACY_SERIALIZER.serialize(toComponent(raw));
         return ColorUtil.translate(raw);
     }
     /**
@@ -61,7 +65,7 @@ public final class MotdRenderer {
         } catch (Throwable ignored) {
             // Fall through to legacy
         }
-        return LEGACY_SERIALIZER.deserialize(ColorUtil.translate(raw));
+        return Adventure.LEGACY_SERIALIZER.deserialize(ColorUtil.translate(raw));
     }
     /**
      * Convert raw text to an Adventure Component through MiniMessage only.
@@ -88,9 +92,7 @@ public final class MotdRenderer {
         return result;
     }
     private static boolean containsMiniMessageTags(String s) {
-        return s.contains("<gradient") || s.contains("<rainbow")
-                || s.contains("<bold>") || s.contains("<italic>")
-                || s.contains("<hover") || s.contains("<click");
+        return s.indexOf('<') >= 0 && s.indexOf('>') > s.indexOf('<');
     }
     private static boolean containsHexTags(String s) {
         return s.contains("<#") || s.contains("&#");
@@ -110,6 +112,12 @@ public final class MotdRenderer {
                     i += 8;
                     continue;
                 }
+            }
+            if ((c == '&' || c == '\u00a7') && i + 1 < input.length()) {
+                String codes = "0123456789abcdefklmnor";
+                String[] tags = {"black","dark_blue","dark_green","dark_aqua","dark_red","dark_purple","gold","gray","dark_gray","blue","green","aqua","red","light_purple","yellow","white","obfuscated","bold","strikethrough","underlined","italic","reset"};
+                int code = codes.indexOf(Character.toLowerCase(input.charAt(i + 1)));
+                if (code >= 0) { sb.append('<').append(tags[code]).append('>'); i += 2; continue; }
             }
             sb.append(c);
             i++;

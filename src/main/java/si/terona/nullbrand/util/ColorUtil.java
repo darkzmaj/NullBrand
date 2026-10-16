@@ -124,7 +124,7 @@ public final class ColorUtil {
             char c = input.charAt(i);
 
             // &#RRGGBB
-            if (c == '&' && i + 1 + 1 + HEX_RGB_LEN - 1 < input.length() && input.charAt(i + 1) == '#') {
+            if (c == '&' && i + 2 + HEX_RGB_LEN <= input.length() && input.charAt(i + 1) == '#') {
                 String hex = input.substring(i + 2, i + 2 + HEX_RGB_LEN);
                 if (isHex(hex)) {
                     i += 2 + HEX_RGB_LEN;
@@ -143,7 +143,7 @@ public final class ColorUtil {
 
             // <#RRGGBB> and </#...>
             if (c == '<') {
-                if (i + 1 + 1 + HEX_RGB_LEN < input.length() && input.charAt(i + 1) == '#') {
+                if (i + 2 + HEX_RGB_LEN < input.length() && input.charAt(i + 1) == '#') {
                     String hex = input.substring(i + 2, i + 2 + HEX_RGB_LEN);
                     if (isHex(hex) && input.charAt(i + 2 + HEX_RGB_LEN) == '>') {
                         i += 3 + HEX_RGB_LEN;

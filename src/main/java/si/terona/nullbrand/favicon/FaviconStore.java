@@ -20,7 +20,7 @@ public final class FaviconStore {
         this.bungeeFavicon = bungee;
         this.spigotFavicon = spigot;
     }
-    public static FaviconStore EMPTY = new FaviconStore(null, null, null, null);
+    public static final FaviconStore EMPTY = new FaviconStore(null, null, null, null);
     /**
      * Load a favicon from the favicons directory.
      *
@@ -30,23 +30,36 @@ public final class FaviconStore {
      */
     public static FaviconStore load(Path faviconDir, String name) {
         if (name == null || name.isEmpty()) return EMPTY;
-        Path path = faviconDir.resolve(name);
-        if (!Files.exists(path)) return EMPTY;
         try {
-            BufferedImage image = ImageIO.read(path.toFile());
+            Path root = faviconDir.toRealPath();
+            Path path = root.resolve(name).normalize();
+            if (!path.startsWith(root) || !Files.isRegularFile(path)
+                    || !path.toRealPath().startsWith(root) || Files.size(path) > 1_048_576) return EMPTY;
+            BufferedImage image;
+            try (javax.imageio.stream.ImageInputStream input = ImageIO.createImageInputStream(path.toFile())) {
+                if (input == null) return EMPTY;
+                java.util.Iterator<javax.imageio.ImageReader> readers = ImageIO.getImageReaders(input);
+                if (!readers.hasNext()) return EMPTY;
+                javax.imageio.ImageReader reader = readers.next();
+                try {
+                    reader.setInput(input, true, true);
+                    if (!reader.getFormatName().equalsIgnoreCase("png")
+                            || reader.getWidth(0) != 64 || reader.getHeight(0) != 64) return EMPTY;
+                    image = reader.read(0);
+                } finally { reader.dispose(); }
+            }
             if (image == null) return EMPTY;
-            if (image.getWidth() != 64 || image.getHeight() != 64) return EMPTY;
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ImageIO.write(image, "png", bos);
             String base64 = "data:image/png;base64," + Base64.getEncoder().encodeToString(bos.toByteArray());
             Object velocity = null;
             Object bungee = null;
             Object spigot = null;
-            try { velocity = com.velocitypowered.api.util.Favicon.create(image); } catch (Throwable ignored) {}
-            try { bungee = net.md_5.bungee.api.Favicon.create(base64); } catch (Throwable ignored) {}
-            try { spigot = org.bukkit.Bukkit.loadServerIcon(image); } catch (Throwable ignored) {}
+            try { velocity = com.velocitypowered.api.util.Favicon.create(image); } catch (LinkageError | RuntimeException ignored) {}
+            try { bungee = net.md_5.bungee.api.Favicon.create(image); } catch (LinkageError | RuntimeException ignored) {}
+            try { spigot = org.bukkit.Bukkit.loadServerIcon(image); } catch (LinkageError | Exception ignored) {}
             return new FaviconStore(base64, velocity, bungee, spigot);
-        } catch (Throwable e) {
+        } catch (java.io.IOException | RuntimeException e) {
             return EMPTY;
         }
     }

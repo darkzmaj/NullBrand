@@ -26,8 +26,7 @@ public final class NullBrandAPI {
      */
     public static boolean reload() {
         checkInitialized();
-        // NullBrand entry points store dataDir/classLoader — delegate through engine state
-        throw new UnsupportedOperationException("Use the in-game /nb reload command to trigger a reload.");
+        return engine.reload();
     }
     /**
      * Switch the active MOTD profile.

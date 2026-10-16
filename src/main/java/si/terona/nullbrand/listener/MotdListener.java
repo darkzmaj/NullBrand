@@ -20,14 +20,10 @@ public final class MotdListener {
     private static PlaceholderEngine.PingContext buildContext(EngineState state,
                                                                MotdProfile profile,
                                                                int realOnline, int realMax) {
-        FakePlayerSettings fake = profile.getFakePlayerSettings().isEnabled()
-                ? profile.getFakePlayerSettings()
-                : state.config().getGlobalFakePlayerSettings();
-        int displayOnline = state.fakePlayerEngine().computeDisplayed(realOnline);
+        FakePlayerSettings fake = profile.getFakePlayerSettings();
+        int displayOnline = state.fakePlayersFor(profile).computeDisplayed(realOnline);
         int fakeBonus = displayOnline - realOnline;
-        MaxPlayersSettings maxSettings = profile.getMaxPlayersSettings().isEnabled()
-                ? profile.getMaxPlayersSettings()
-                : state.config().getGlobalMaxPlayersSettings();
+        MaxPlayersSettings maxSettings = profile.getMaxPlayersSettings();
         int displayMax = maxSettings.isEnabled() ? maxSettings.getAmount() : realMax;
         boolean maintenance = state.maintenanceManager().isActive();
         String fakeInfo = fake.isEnabled() ? fake.getMode() + " +" + fakeBonus : "off";
@@ -61,7 +57,7 @@ public final class MotdListener {
         List<String> resolved = new ArrayList<>(lines.size());
         if (profile.isHoverRandom()) {
             // Use a single random line
-            String randomLine = lines.get(new Random().nextInt(lines.size()));
+            String randomLine = lines.get(java.util.concurrent.ThreadLocalRandom.current().nextInt(lines.size()));
             resolved.add(state.placeholderEngine().resolve(randomLine, ctx));
         } else {
             for (String line : lines) {
@@ -75,9 +71,7 @@ public final class MotdListener {
      */
     private static List<String> resolvePlayerCountText(EngineState state, MotdProfile profile,
                                                          PlaceholderEngine.PingContext ctx) {
-        PlayerCountSettings pcs = profile.getPlayerCountSettings().isEnabled()
-                ? profile.getPlayerCountSettings()
-                : state.config().getGlobalPlayerCountSettings();
+        PlayerCountSettings pcs = profile.getPlayerCountSettings();
         if (!pcs.isEnabled()) return null;
         if (pcs.getAnimation().isEnabled() && pcs.getAnimation().hasFrames()) {
             String frame = state.animationEngine().currentFrame("pc:" + profile.getName(),
@@ -108,7 +102,7 @@ public final class MotdListener {
             catch (Throwable ignored) {}
             if (state.rateLimiter().isBlocked(ip)) return;
             MotdProfile profile;
-            try { profile = state.profileManager().resolve(); } catch (Throwable t) { return; }
+            try { profile = state.resolveProfile(); } catch (Throwable t) { return; }
             int realOnline = event.getPing().getPlayers().map(
                     com.velocitypowered.api.proxy.server.ServerPing.Players::getOnline).orElse(0);
             int realMax = event.getPing().getPlayers().map(
@@ -168,17 +162,17 @@ public final class MotdListener {
             if (state == null || !state.config().isMotdEnabled()) return;
             if (event.getResponse() == null) return;
             String ip = null;
-            try { ip = event.getConnection().getAddress().getAddress().getHostAddress(); }
+            try { ip = ((java.net.InetSocketAddress) event.getConnection().getSocketAddress()).getAddress().getHostAddress(); }
             catch (Throwable ignored) {}
             if (state.rateLimiter().isBlocked(ip)) return;
             MotdProfile profile;
-            try { profile = state.profileManager().resolve(); } catch (Throwable t) { return; }
+            try { profile = state.resolveProfile(); } catch (Throwable t) { return; }
             net.md_5.bungee.api.ServerPing response = event.getResponse();
             int realOnline = response.getPlayers() != null ? response.getPlayers().getOnline() : 0;
             int realMax = response.getPlayers() != null ? response.getPlayers().getMax() : 0;
             PlaceholderEngine.PingContext ctx = buildContext(state, profile, realOnline, realMax);
             String resolvedMotd = resolveMotd(state, profile, ctx);
-            response.setDescription(MotdRenderer.toLegacy(resolvedMotd));
+            response.setDescriptionComponent(net.md_5.bungee.api.chat.TextComponent.fromLegacy(si.terona.nullbrand.util.ColorUtil.translate(resolvedMotd)));
             // Player counts
             if (response.getPlayers() != null) {
                 response.getPlayers().setOnline(ctx.displayOnline());
@@ -199,7 +193,7 @@ public final class MotdListener {
                 for (int i = 0; i < hoverLines.size(); i++) {
                     UUID id = UUID.nameUUIDFromBytes(("nb-hover-" + i).getBytes(StandardCharsets.UTF_8));
                     sample[i] = new net.md_5.bungee.api.ServerPing.PlayerInfo(
-                            MotdRenderer.toLegacy(hoverLines.get(i)), id);
+                            si.terona.nullbrand.util.ColorUtil.translate(hoverLines.get(i)), id);
                 }
                 response.getPlayers().setSample(sample);
             }
@@ -217,10 +211,7 @@ public final class MotdListener {
         public void onPing(org.bukkit.event.server.ServerListPingEvent event) {
             handleSpigot(event);
         }
-        @org.bukkit.event.EventHandler
-        public void onPaperPing(com.destroystokyo.paper.event.server.PaperServerListPingEvent event) {
-            handlePaper(event);
-        }
+        @SuppressWarnings("deprecation") // Plain Spigot exposes the legacy string MOTD API.
         private void handleSpigot(org.bukkit.event.server.ServerListPingEvent event) {
             EngineState state = engine.state();
             if (state == null || !state.config().isMotdEnabled()) return;
@@ -228,20 +219,27 @@ public final class MotdListener {
             try { ip = event.getAddress().getHostAddress(); } catch (Throwable ignored) {}
             if (state.rateLimiter().isBlocked(ip)) return;
             MotdProfile profile;
-            try { profile = state.profileManager().resolve(); } catch (Throwable t) { return; }
+            try { profile = state.resolveProfile(); } catch (Throwable t) { return; }
             int realOnline = event.getNumPlayers();
             int realMax = event.getMaxPlayers();
             PlaceholderEngine.PingContext ctx = buildContext(state, profile, realOnline, realMax);
             String resolvedMotd = resolveMotd(state, profile, ctx);
-            event.setMotd(MotdRenderer.toLegacy(resolvedMotd));
-            MaxPlayersSettings maxSettings = profile.getMaxPlayersSettings().isEnabled()
-                    ? profile.getMaxPlayersSettings()
-                    : state.config().getGlobalMaxPlayersSettings();
+            event.setMotd(si.terona.nullbrand.util.ColorUtil.translate(resolvedMotd));
+            MaxPlayersSettings maxSettings = profile.getMaxPlayersSettings();
             if (maxSettings.isEnabled()) event.setMaxPlayers(maxSettings.getAmount());
             FaviconStore fav = state.faviconFor(profile.getName());
             if (fav.hasFavicon() && fav.getSpigot() instanceof org.bukkit.util.CachedServerIcon) {
                 event.setServerIcon((org.bukkit.util.CachedServerIcon) fav.getSpigot());
             }
+        }
+    }
+    /** Loaded only on Paper, so Spigot never resolves Paper event classes. */
+    public static final class Paper implements org.bukkit.event.Listener {
+        private final BrandEngine engine;
+        public Paper(BrandEngine engine) { this.engine = engine; }
+        @org.bukkit.event.EventHandler
+        public void onPing(com.destroystokyo.paper.event.server.PaperServerListPingEvent event) {
+            if (!event.isCancelled()) handlePaper(event);
         }
         private void handlePaper(com.destroystokyo.paper.event.server.PaperServerListPingEvent event) {
             EngineState state = engine.state();
@@ -250,33 +248,44 @@ public final class MotdListener {
             try { java.net.InetSocketAddress sa = event.getClient().getAddress(); ip = sa.getAddress() != null ? sa.getAddress().getHostAddress() : sa.getHostString(); } catch (Throwable ignored) {}
             if (state.rateLimiter().isBlocked(ip)) return;
             MotdProfile profile;
-            try { profile = state.profileManager().resolve(); } catch (Throwable t) { return; }
+            try { profile = state.resolveProfile(); } catch (Throwable t) { return; }
             int realOnline = event.getNumPlayers();
             int realMax = event.getMaxPlayers();
             PlaceholderEngine.PingContext ctx = buildContext(state, profile, realOnline, realMax);
             String resolvedMotd = resolveMotd(state, profile, ctx);
-            event.setMotd(MotdRenderer.toLegacy(resolvedMotd));
-            MaxPlayersSettings maxSettings = profile.getMaxPlayersSettings().isEnabled()
-                    ? profile.getMaxPlayersSettings()
-                    : state.config().getGlobalMaxPlayersSettings();
+            event.motd(MotdRenderer.toMotdComponent(resolvedMotd));
+            MaxPlayersSettings maxSettings = profile.getMaxPlayersSettings();
             if (maxSettings.isEnabled()) event.setMaxPlayers(maxSettings.getAmount());
             FaviconStore fav = state.faviconFor(profile.getName());
             if (fav.hasFavicon() && fav.getSpigot() instanceof org.bukkit.util.CachedServerIcon) {
                 event.setServerIcon((org.bukkit.util.CachedServerIcon) fav.getSpigot());
             }
-            // Paper: can set hover (sample players)
-            if (profile.isHoverEnabled()) {
-                List<String> hoverLines = resolveHoverLines(state, profile, ctx);
-                List<com.destroystokyo.paper.profile.PlayerProfile> sample = new ArrayList<>();
-                for (int i = 0; i < hoverLines.size(); i++) {
-                    UUID id = UUID.nameUUIDFromBytes(("nb-hover-" + i).getBytes(StandardCharsets.UTF_8));
-                    com.destroystokyo.paper.profile.PlayerProfile pp =
-                            org.bukkit.Bukkit.createProfile(id, MotdRenderer.toLegacy(hoverLines.get(i)));
-                    sample.add(pp);
-                }
-                event.getPlayerSample().clear();
-                event.getPlayerSample().addAll(sample);
+            event.setNumPlayers(ctx.displayOnline());
+            List<String> pcText = resolvePlayerCountText(state, profile, ctx);
+            if (pcText != null || profile.isHoverEnabled()) {
+                List<String> hoverLines = pcText != null ? pcText : resolveHoverLines(state, profile, ctx);
+                setPaperSample(event, hoverLines);
             }
         }
+        @SuppressWarnings({"deprecation", "removal"})
+        private static void setPaperSample(com.destroystokyo.paper.event.server.PaperServerListPingEvent event,
+                                           List<String> lines) {
+            try {
+                java.util.List<com.destroystokyo.paper.event.server.PaperServerListPingEvent.ListedPlayerInfo> sample = event.getListedPlayers();
+                sample.clear();
+                for (int i = 0; i < lines.size(); i++) {
+                    sample.add(new com.destroystokyo.paper.event.server.PaperServerListPingEvent.ListedPlayerInfo(
+                        MotdRenderer.toLegacy(lines.get(i)), UUID.nameUUIDFromBytes(("nb-hover-" + i).getBytes(StandardCharsets.UTF_8))));
+                }
+            } catch (NoSuchMethodError | NoClassDefFoundError legacyPaper) {
+                // Older Paper releases expose only the profile sample API.
+                event.getPlayerSample().clear();
+                for (int i = 0; i < lines.size(); i++) {
+                    event.getPlayerSample().add(org.bukkit.Bukkit.createProfile(
+                        UUID.nameUUIDFromBytes(("nb-hover-" + i).getBytes(StandardCharsets.UTF_8)), MotdRenderer.toLegacy(lines.get(i))));
+                }
+            }
+        }
+
     }
 }

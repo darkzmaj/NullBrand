@@ -40,13 +40,13 @@ public final class LogUtil {
      * Creates a SLF4J-backed LogUtil for Velocity compatibility.
      */
     public static LogUtil ofSlf4j(org.slf4j.Logger slf4j, boolean debug) {
-        Logger jul = Logger.getLogger("NullBrand");
+        Logger jul = Logger.getAnonymousLogger();
         jul.setUseParentHandlers(false);
         jul.addHandler(new java.util.logging.Handler() {
             @Override public void publish(java.util.logging.LogRecord r) {
                 String msg = r.getMessage();
-                if (r.getLevel() == Level.SEVERE) slf4j.error(msg);
-                else if (r.getLevel() == Level.WARNING) slf4j.warn(msg);
+                if (r.getLevel() == Level.SEVERE) slf4j.error(msg, r.getThrown());
+                else if (r.getLevel() == Level.WARNING) slf4j.warn(msg, r.getThrown());
                 else slf4j.info(msg);
             }
             @Override public void flush() {}

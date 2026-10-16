@@ -1,6 +1,6 @@
-﻿name: NullBrand
+name: NullBrand
 main: si.terona.nullbrand.NullBrand$Spigot
-version: 2.0.0
+version: ${version}
 author: Terona Studios
 description: Premium server-list branding engine for Velocity, BungeeCord, Waterfall and Spigot/Paper.
 api-version: '1.21'
@@ -8,29 +8,25 @@ commands:
   nullbrand:
     description: NullBrand management command
     aliases: [nb]
-    permission: nullbrand.admin
     usage: /nb <reload|profile|maintenance|fakeplayers|status>
 permissions:
   nullbrand.admin:
     description: Full access to all NullBrand commands.
     default: op
+    children:
+      nullbrand.reload: true
+      nullbrand.profile.switch: true
+      nullbrand.maintenance: true
+      nullbrand.fakeplayers: true
   nullbrand.reload:
     description: Reload the NullBrand configuration.
     default: op
-    children:
-      nullbrand.admin: true
   nullbrand.profile.switch:
     description: Switch the active MOTD profile.
     default: op
-    children:
-      nullbrand.admin: true
   nullbrand.maintenance:
     description: Toggle maintenance mode.
     default: op
-    children:
-      nullbrand.admin: true
   nullbrand.fakeplayers:
     description: Set the fake player count.
     default: op
-    children:
-      nullbrand.admin: true

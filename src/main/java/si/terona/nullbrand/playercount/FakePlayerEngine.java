@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class FakePlayerEngine {
     private static final Random RANDOM = new Random();
     private final FakePlayerSettings settings;
+    private final AtomicInteger staticOverride = new AtomicInteger(-1);
     /** Cached random value for RANDOM mode (refreshed every cacheTicks). */
     private final AtomicInteger cachedRandom = new AtomicInteger(0);
     private final AtomicLong randomTick = new AtomicLong(0);
@@ -32,7 +33,7 @@ public final class FakePlayerEngine {
     public int computeDisplayed(int realOnline) {
         if (!settings.isEnabled()) return realOnline;
         int bonus = switch (settings.getMode()) {
-            case STATIC -> settings.getAmount();
+            case STATIC -> staticOverride.get() >= 0 ? staticOverride.get() : settings.getAmount();
             case RANDOM -> cachedRandom.get();
             case SMART -> {
                 int computed = (int) (realOnline * settings.getMultiplier());
@@ -40,7 +41,7 @@ public final class FakePlayerEngine {
             }
             case TIME_BASED -> computeTimeBased(realOnline);
         };
-        return Math.max(0, realOnline + bonus);
+        return (int) Math.max(0L, Math.min(Integer.MAX_VALUE, (long) realOnline + bonus));
     }
     /**
      * Tick method — called by the BrandEngine scheduler. Refreshes cached random
@@ -56,7 +57,7 @@ public final class FakePlayerEngine {
     }
     /** Override the static fake amount at runtime (API or command driven). */
     public void setStaticOverride(int amount) {
-        cachedRandom.set(amount);
+        staticOverride.set(Math.max(0, amount));
     }
     public FakePlayerSettings getSettings() {
         return settings;
@@ -65,7 +66,7 @@ public final class FakePlayerEngine {
         int min = settings.getMin();
         int max = settings.getMax();
         if (max <= min) { cachedRandom.set(min); return; }
-        cachedRandom.set(min + RANDOM.nextInt(max - min + 1));
+        cachedRandom.set((int) java.util.concurrent.ThreadLocalRandom.current().nextLong(min, (long) max + 1));
     }
     private int computeTimeBased(int realOnline) {
         LocalTime now = LocalTime.now();
