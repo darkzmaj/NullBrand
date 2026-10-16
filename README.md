@@ -31,3 +31,11 @@ Ping protection bounds the cooldown cache to 16,384 IPs and skips branding for r
 Build with JDK 25: `bash gradlew clean build`. Distribute `build/libs/NullBrand-2.0.1.jar`; the `-plain.jar` is not a standalone distributable. Only SnakeYAML 2.7 is bundled and relocated; server APIs/Adventure are supplied by the host. SnakeYAML is Apache-2.0 licensed and its notices remain in the archive.
 
 See [CHANGELOG.md](CHANGELOG.md) and [AUDIT.md](AUDIT.md) for validation and limitations. No telemetry or external service was added.
+
+## Release downloads and publishing
+
+Install the compiled **NullBrand-<version>.jar** from [GitHub Releases](https://github.com/darkzmaj/NullBrand/releases); the generated source archives are not installable plugins. Release assets include a SHA-256 file.
+
+The **Publish release JAR** workflow runs for new `vMAJOR.MINOR.PATCH` tags. To attach assets to an existing release, run it manually from `main` with the exact version tag (for example `v2.0.1`). It checks out the resolved tag commit, uses Java 25, runs `clean build` and existing tests, validates plugin metadata and bytecode, and preserves the JAR as an Actions artifact before publishing. The build has read-only repository access; only the separate publishing job has `contents: write`. Existing assets are compared and never overwritten. The audited release tag and original JAR checksum are pinned for v2.0.1; a mismatch stops publication.
+
+Repository Actions must be enabled and permit the workflow's `GITHUB_TOKEN` to request `contents: write` (organization policy must permit it). No personal access token is required. No tag or release needs to be deleted or recreated. See [release notes](docs/releases/v2.0.1.md) for verified platforms and limitations.
