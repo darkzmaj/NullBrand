@@ -16,8 +16,8 @@ public final class MaintenanceManager {
         active.set(state);
     }
     public boolean toggle() {
-        boolean newState = !active.get();
-        active.set(newState);
-        return newState;
+        boolean previous;
+        do { previous = active.get(); } while (!active.compareAndSet(previous, !previous));
+        return !previous;
     }
 }

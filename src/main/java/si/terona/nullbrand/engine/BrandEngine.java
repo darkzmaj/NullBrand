@@ -40,6 +40,8 @@ public final class BrandEngine {
         final PlaceholderEngine placeholderEngine;
         final MaintenanceManager maintenanceManager;
         final PingRateLimiter rateLimiter;
+        final Map<String, FakePlayerEngine> profileFakePlayers;
+        final java.util.Set<FakePlayerEngine> uniqueFakePlayers;
         EngineState(BrandConfig config,
                     FaviconStore globalFavicon,
                     Map<String, FaviconStore> profileFavicons,
@@ -58,6 +60,19 @@ public final class BrandEngine {
             this.placeholderEngine = placeholderEngine;
             this.maintenanceManager = maintenanceManager;
             this.rateLimiter = rateLimiter;
+            Map<String, FakePlayerEngine> engines = new java.util.HashMap<>();
+            config.getProfiles().forEach((name, profile) -> engines.put(name,
+                profile.getFakePlayerSettings() == config.getGlobalFakePlayerSettings()
+                    ? fakePlayerEngine : new FakePlayerEngine(profile.getFakePlayerSettings())));
+            this.profileFakePlayers = Map.copyOf(engines);
+            this.uniqueFakePlayers = java.util.Set.copyOf(engines.values());
+        }
+        public MotdProfile resolveProfile() {
+            return maintenanceManager.isActive()
+                ? config.getProfile(config.getMaintenanceSettings().getProfile()) : profileManager.resolve();
+        }
+        public FakePlayerEngine fakePlayersFor(MotdProfile profile) {
+            return profileFakePlayers.getOrDefault(profile.getName(), fakePlayerEngine);
         }
         public BrandConfig config() { return config; }
         public FaviconStore globalFavicon() { return globalFavicon; }
@@ -104,6 +119,8 @@ public final class BrandEngine {
     private volatile ScheduledFuture<?> rotationTask;
     private final LogUtil log;
     private final String platform;
+    private Path loadedDirectory;
+    private ClassLoader loadedClassLoader;
     public BrandEngine(LogUtil log, String platform) {
         this.log = log;
         this.platform = platform;
@@ -124,6 +141,7 @@ public final class BrandEngine {
      * @return true if load succeeded (or partially succeeded with warnings)
      */
     public synchronized boolean load(Path dataDir, ClassLoader classLoader) {
+        if (scheduler.isShutdown()) return false;
         log.debug("Starting config load from: " + dataDir);
         ConfigLoader loader = new ConfigLoader();
         BrandConfig config;
@@ -142,6 +160,9 @@ public final class BrandEngine {
         // Build favicon stores
         Path faviconDir = dataDir.resolve("favicons");
         FaviconStore globalFav = FaviconStore.load(faviconDir, config.getGlobalFaviconName());
+        if (!config.getGlobalFaviconName().isEmpty() && !globalFav.hasFavicon()) {
+            log.warn("Global favicon unavailable: use a PNG of 64x64 pixels, at most 1 MiB, inside favicons/.");
+        }
         ConcurrentHashMap<String, FaviconStore> profileFavicons = new ConcurrentHashMap<>();
         for (Map.Entry<String, MotdProfile> entry : config.getProfiles().entrySet()) {
             String fn = entry.getValue().getFaviconName();
@@ -170,6 +191,8 @@ public final class BrandEngine {
                 placeholderEngine, maintenanceManager, rateLimiter);
         // Atomically replace state
         stateRef.set(newState);
+        loadedDirectory = dataDir;
+        loadedClassLoader = classLoader;
         // Restart background tasks
         stopBackgroundTasks();
         startBackgroundTasks(newState);
@@ -179,13 +202,17 @@ public final class BrandEngine {
     /**
      * Get the current engine state. Never null after first successful load.
      */
+    public synchronized boolean reload() {
+        return loadedDirectory != null && load(loadedDirectory, loadedClassLoader);
+    }
+    public String platform() { return platform; }
     public EngineState state() {
         return stateRef.get();
     }
     /**
      * Shut down the engine and background threads cleanly.
      */
-    public void shutdown() {
+    public synchronized void shutdown() {
         stopBackgroundTasks();
         scheduler.shutdown();
         try {
@@ -208,8 +235,9 @@ public final class BrandEngine {
         if (rt != null) { rt.cancel(false); this.rotationTask = null; }
     }
     private void startBackgroundTasks(EngineState state) {
-        // Always tick for animations and fake player random refreshes
-        tickTask = scheduler.scheduleAtFixedRate(this::tick, 50L, 50L, TimeUnit.MILLISECONDS);
+        if (state.hasAnimations() || state.hasFakePlayerRandom()) {
+            tickTask = scheduler.scheduleAtFixedRate(this::tick, 50L, 50L, TimeUnit.MILLISECONDS);
+        }
         // Profile rotation
         if (state.config().getRotationSettings().isEnabled()) {
             long intervalSec = state.config().getRotationSettings().getInterval();
@@ -222,7 +250,7 @@ public final class BrandEngine {
         EngineState s = stateRef.get();
         if (s == null) return;
         s.animationEngine.tick();
-        s.fakePlayerEngine.tick();
+        for (FakePlayerEngine engine : s.uniqueFakePlayers) engine.tick();
     }
     private void rotateProfile() {
         EngineState s = stateRef.get();

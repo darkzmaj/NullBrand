@@ -11,7 +11,7 @@ public final class AnimationSettings {
     public AnimationSettings(boolean enabled, int interval, List<String> frames) {
         this.enabled = enabled;
         this.interval = Math.max(1, interval);
-        this.frames = Collections.unmodifiableList(frames);
+        this.frames = List.copyOf(frames);
     }
     public boolean isEnabled() { return enabled; }
     public int getInterval() { return interval; }

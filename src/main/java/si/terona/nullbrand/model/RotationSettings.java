@@ -11,7 +11,7 @@ public final class RotationSettings {
     public RotationSettings(boolean enabled, int interval, List<String> profiles) {
         this.enabled = enabled;
         this.interval = Math.max(10, interval);
-        this.profiles = Collections.unmodifiableList(profiles);
+        this.profiles = List.copyOf(profiles);
     }
     public boolean isEnabled() { return enabled && profiles.size() > 1; }
     public int getInterval() { return interval; }

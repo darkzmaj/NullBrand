@@ -23,9 +23,6 @@ public final class ProfileManager {
      * Maintenance mode overrides the active profile if enabled.
      */
     public MotdProfile resolve() {
-        if (config.getMaintenanceSettings().isEnabled()) {
-            return config.getProfile(config.getMaintenanceSettings().getProfile());
-        }
         return config.getProfile(activeProfileName.get());
     }
     /**

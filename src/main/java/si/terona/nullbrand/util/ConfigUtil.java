@@ -61,74 +61,12 @@ public final class ConfigUtil {
     }
 
     private void loadFavicon() {
-        if (faviconName == null || faviconName.isEmpty()) {
-            cachedFaviconBase64 = null;
-            cachedFaviconVelocity = null;
-            cachedFaviconBungee = null;
-            cachedFaviconSpigot = null;
-            return;
-        }
-
-        Path faviconPath = faviconDirectory.resolve(faviconName);
-        if (!Files.exists(faviconPath)) {
-            cachedFaviconBase64 = null;
-            cachedFaviconVelocity = null;
-            cachedFaviconBungee = null;
-            cachedFaviconSpigot = null;
-            return;
-        }
-
-        try {
-            BufferedImage image = ImageIO.read(faviconPath.toFile());
-            if (image == null) {
-                if (debugEnabled) {
-                    System.out.println("[NullBrand] Failed to load favicon (invalid image): " + faviconName);
-                }
-                return;
-            }
-
-            if (image.getWidth() != 64 || image.getHeight() != 64) {
-                if (debugEnabled) {
-                    System.out.println("[NullBrand] Favicon must be 64x64! Current: " + image.getWidth() + "x" + image.getHeight());
-                }
-                return;
-            }
-
-            // Proxy Servers (Velocity, BungeeCord, Waterfall) require Base64
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            ImageIO.write(image, "png", outputStream);
-            byte[] imageBytes = outputStream.toByteArray();
-            String base64 = Base64.getEncoder().encodeToString(imageBytes);
-            this.cachedFaviconBase64 = "data:image/png;base64," + base64;
-
-            if (debugEnabled) {
-                System.out.println("[NullBrand] Loaded favicon: " + faviconName);
-            }
-
-            // Platform specific objects
-            try {
-                if (isClassAvailable("com.velocitypowered.api.util.Favicon")) {
-                    this.cachedFaviconVelocity = com.velocitypowered.api.util.Favicon.create(image);
-                }
-            } catch (Throwable ignored) {}
-
-            try {
-                if (isClassAvailable("net.md_5.bungee.api.Favicon")) {
-                    this.cachedFaviconBungee = net.md_5.bungee.api.Favicon.create(this.cachedFaviconBase64);
-                }
-            } catch (Throwable ignored) {}
-
-            try {
-                if (isClassAvailable("org.bukkit.Bukkit")) {
-                    this.cachedFaviconSpigot = org.bukkit.Bukkit.loadServerIcon(image);
-                }
-            } catch (Throwable ignored) {}
-
-        } catch (Throwable e) {
-            if (debugEnabled) {
-                System.out.println("[NullBrand] Error loading favicon: " + e.getMessage());
-            }
-        }
+        si.terona.nullbrand.favicon.FaviconStore store =
+                si.terona.nullbrand.favicon.FaviconStore.load(faviconDirectory, faviconName);
+        cachedFaviconBase64 = store.getBase64();
+        cachedFaviconVelocity = store.getVelocity();
+        cachedFaviconBungee = store.getBungee();
+        cachedFaviconSpigot = store.getSpigot();
     }
 
     private boolean isClassAvailable(String className) {

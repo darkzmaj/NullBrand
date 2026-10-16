@@ -15,14 +15,14 @@ import si.terona.nullbrand.util.LogUtil;
 import java.nio.file.Path;
 /**
  * NullBrand — Premium Server-List Branding Engine.
- * Version 2.0.0
+ * Version 2.0.1
  *
  * <p>Supports: Velocity · BungeeCord · Waterfall · Spigot · Paper
  */
 @Plugin(
         id = "nullbrand",
         name = "NullBrand",
-        version = "2.0.0",
+        version = "2.0.1",
         description = "Premium server-list branding engine — MOTD, favicon, fake players, animations & more.",
         authors = {"Terona Studios"}
 )
@@ -49,11 +49,12 @@ public final class NullBrand {
         proxy.getEventManager().register(this, new MotdListener.Velocity(engine));
         proxy.getCommandManager().register("nullbrand",
                 new NullBrandCommand.Velocity(engine, dataDirectory, getClass().getClassLoader()), "nb");
-        log.info("NullBrand 2.0.0 online on Velocity.");
+        log.info("NullBrand 2.0.1 online on Velocity.");
     }
     @Subscribe
     public void onProxyShutdown(ProxyShutdownEvent event) {
         if (engine != null) engine.shutdown();
+            NullBrandAPI.init(null);
     }
     // -------------------------------------------------------------------------
     // BungeeCord / Waterfall entry point
@@ -73,11 +74,12 @@ public final class NullBrand {
             getProxy().getPluginManager().registerListener(this, new MotdListener.Bungee(engine));
             getProxy().getPluginManager().registerCommand(this,
                     new NullBrandCommand.Bungee(engine, dataDir, getClass().getClassLoader()));
-            log.info("NullBrand 2.0.0 online on BungeeCord/Waterfall.");
+            log.info("NullBrand 2.0.1 online on BungeeCord/Waterfall.");
         }
         @Override
         public void onDisable() {
             if (engine != null) engine.shutdown();
+            NullBrandAPI.init(null);
         }
     }
     // -------------------------------------------------------------------------
@@ -95,7 +97,14 @@ public final class NullBrand {
             if (!engine.load(dataDir, getClass().getClassLoader())) {
                 log.error("Failed to load configuration. Plugin may not function correctly.");
             }
-            getServer().getPluginManager().registerEvents(new MotdListener.Spigot(engine), this);
+            org.bukkit.event.Listener listener;
+            try {
+                Class.forName("com.destroystokyo.paper.event.server.PaperServerListPingEvent");
+                listener = new MotdListener.Paper(engine);
+            } catch (ClassNotFoundException legacySpigot) {
+                listener = new MotdListener.Spigot(engine);
+            }
+            getServer().getPluginManager().registerEvents(listener, this);
             org.bukkit.command.PluginCommand cmd = getCommand("nullbrand");
             if (cmd != null) {
                 NullBrandCommand.Spigot handler =
@@ -103,11 +112,12 @@ public final class NullBrand {
                 cmd.setExecutor(handler);
                 cmd.setTabCompleter(handler);
             }
-            log.info("NullBrand 2.0.0 online on Spigot/Paper.");
+            log.info("NullBrand 2.0.1 online on Spigot/Paper.");
         }
         @Override
         public void onDisable() {
             if (engine != null) engine.shutdown();
+            NullBrandAPI.init(null);
         }
     }
 }

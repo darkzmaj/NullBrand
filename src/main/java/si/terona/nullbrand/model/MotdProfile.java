@@ -36,8 +36,8 @@ public final class MotdProfile {
                        PlayerCountSettings playerCountSettings,
                        String faviconName) {
         this.name = name;
-        this.lines = Collections.unmodifiableList(lines);
-        this.hoverLines = Collections.unmodifiableList(hoverLines);
+        this.lines = List.copyOf(lines);
+        this.hoverLines = List.copyOf(hoverLines);
         this.hoverEnabled = hoverEnabled;
         this.hoverRandom = hoverRandom;
         this.motdAnimation = motdAnimation != null ? motdAnimation : AnimationSettings.DISABLED;
