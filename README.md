@@ -10,7 +10,7 @@ Verified on Minecraft Java **26.3** (protocol 777):
 | --- | --- | --- |
 | Paper | 26.3 build 194, stable | 25 |
 | Velocity | 4.2.0 build 30, stable | 25 |
-| BungeeCord | build 2104 | 25 |
+| BungeeCord | build 2104 | 21 / 25 |
 
 Waterfall is discontinued and remains a legacy, untested target. Spigot and older platform versions retain compatibility adapters but were not runtime tested. Plugin classes retain Java 17 bytecode; use the Java runtime required by the host. Folia is not declared supported because it has not been validated.
 

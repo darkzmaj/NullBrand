@@ -191,7 +191,7 @@ public final class ConfigLoader {
             if (loaded == null) return Collections.emptyMap();
             throw new IllegalArgumentException("config.yml must contain a mapping");
         } catch (YAMLException e) {
-            throw new IllegalArgumentException("Invalid YAML in config.yml; previous configuration retained", e);
+            throw new IllegalArgumentException("Invalid YAML in config.yml; previous configuration retained (check syntax, duplicate keys and unsupported tags)");
         } catch (IOException e) {
             throw new IllegalArgumentException("Cannot read config.yml; previous configuration retained", e);
         }

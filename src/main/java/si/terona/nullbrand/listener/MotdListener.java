@@ -20,9 +20,7 @@ public final class MotdListener {
     private static PlaceholderEngine.PingContext buildContext(EngineState state,
                                                                MotdProfile profile,
                                                                int realOnline, int realMax) {
-        FakePlayerSettings fake = profile.getFakePlayerSettings().isEnabled()
-                ? profile.getFakePlayerSettings()
-                : state.config().getGlobalFakePlayerSettings();
+        FakePlayerSettings fake = profile.getFakePlayerSettings();
         int displayOnline = state.fakePlayersFor(profile).computeDisplayed(realOnline);
         int fakeBonus = displayOnline - realOnline;
         MaxPlayersSettings maxSettings = profile.getMaxPlayersSettings();
