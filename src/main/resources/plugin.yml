@@ -4,6 +4,7 @@ version: ${version}
 author: Terona Studios
 description: Premium server-list branding engine for Velocity, BungeeCord, Waterfall and Spigot/Paper.
 api-version: '1.21'
+folia-supported: true
 commands:
   nullbrand:
     description: NullBrand management command

@@ -1,3 +1,7 @@
+# 2.0.2 — 2026-11-04
+
+- Folia support: the plugin now declares `folia-supported: true`. NullBrand only answers server-list pings and runs its own command, never touching the Bukkit scheduler, worlds or entities, and its shared state is thread-safe, so it runs on Folia unchanged.
+
 # 2.0.1 — 2026-10-16
 
 - Fix ping cooldown recovery; bound per-IP cache memory and avoid mutable timestamp races.
