@@ -15,14 +15,14 @@ import si.terona.nullbrand.util.LogUtil;
 import java.nio.file.Path;
 /**
  * NullBrand — Premium Server-List Branding Engine.
- * Version 2.0.1
+ * Version 2.0.2
  *
  * <p>Supports: Velocity · BungeeCord · Waterfall · Spigot · Paper
  */
 @Plugin(
         id = "nullbrand",
         name = "NullBrand",
-        version = "2.0.1",
+        version = "2.0.2",
         description = "Premium server-list branding engine — MOTD, favicon, fake players, animations & more.",
         authors = {"Terona Studios"}
 )
@@ -50,7 +50,7 @@ public final class NullBrand {
         proxy.getCommandManager().register(proxy.getCommandManager().metaBuilder("nullbrand")
                 .aliases("nb").plugin(this).build(),
                 new NullBrandCommand.Velocity(engine, dataDirectory, getClass().getClassLoader()));
-        log.info("NullBrand 2.0.1 online on Velocity.");
+        log.info("NullBrand 2.0.2 online on Velocity.");
     }
     @Subscribe
     public void onProxyShutdown(ProxyShutdownEvent event) {
@@ -75,7 +75,7 @@ public final class NullBrand {
             getProxy().getPluginManager().registerListener(this, new MotdListener.Bungee(engine));
             getProxy().getPluginManager().registerCommand(this,
                     new NullBrandCommand.Bungee(engine, dataDir, getClass().getClassLoader()));
-            log.info("NullBrand 2.0.1 online on BungeeCord/Waterfall.");
+            log.info("NullBrand 2.0.2 online on BungeeCord/Waterfall.");
         }
         @Override
         public void onDisable() {
@@ -113,7 +113,7 @@ public final class NullBrand {
                 cmd.setExecutor(handler);
                 cmd.setTabCompleter(handler);
             }
-            log.info("NullBrand 2.0.1 online on Spigot/Paper.");
+            log.info("NullBrand 2.0.2 online on Spigot/Paper.");
         }
         @Override
         public void onDisable() {
