@@ -44,6 +44,4 @@ NullBrand opens no network connections of its own. It does not check for updates
 
 [![Join our Discord: darkzmaj.eu/discord](https://kori.my/assets/img/brand/discord-banner.png)](https://darkzmaj.eu/discord)
 
-![© 2026 DarkZmaj · KORI Network](https://kori.my/assets/img/brand/copyright.png)
-
-Free to use, with the source code on GitHub. Made by DarkZmaj for KORI Network.
+Free and open source under the MIT licence. Made by DarkZmaj for KORI Network.
