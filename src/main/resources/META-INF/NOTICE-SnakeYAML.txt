@@ -5,5 +5,5 @@ Upstream: https://bitbucket.org/snakeyaml/snakeyaml
 Artifact: https://repo.maven.apache.org/maven2/org/yaml/snakeyaml/2.7/
 
 The org.yaml.snakeyaml package is relocated to
-si.terona.nullbrand.internal.yaml to avoid host/plugin conflicts.
+dev.korinetwork.nullbrand.internal.yaml to avoid host/plugin conflicts.
 The accompanying LICENSE-SnakeYAML.txt contains the full license.

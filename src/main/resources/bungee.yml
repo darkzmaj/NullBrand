@@ -1,5 +1,5 @@
 name: NullBrand
-main: si.terona.nullbrand.NullBrand$Bungee
+main: dev.korinetwork.nullbrand.NullBrand$Bungee
 version: ${version}
-author: Terona Studios
+author: DarkZmaj
 description: Premium server-list branding engine for BungeeCord and Waterfall.
