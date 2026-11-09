@@ -40,6 +40,10 @@ NullBrand opens no network connections of its own. It does not check for updates
 - **Documentation:** https://kori.my/docs/nullbrand/
 - **Download:** [GitHub](https://github.com/darkzmaj/NullBrand/releases/latest), [Modrinth](https://modrinth.com/plugin/nullbrand), [SpigotMC](https://www.spigotmc.org/resources/132353/)
 - **Source code:** https://github.com/darkzmaj/NullBrand
-- **Support:** [Discord](https://kori.my/discord) and https://kori.my
+- **Support:** [Discord](https://darkzmaj.eu/discord) and https://kori.my
+
+[![Join our Discord: darkzmaj.eu/discord](https://kori.my/assets/img/brand/discord-banner.png)](https://darkzmaj.eu/discord)
+
+![© 2026 DarkZmaj · KORI Network](https://kori.my/assets/img/brand/copyright.png)
 
 Free to use, with the source code on GitHub. Made by DarkZmaj for KORI Network.
