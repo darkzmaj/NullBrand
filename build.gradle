@@ -3,7 +3,7 @@ plugins {
     id 'com.gradleup.shadow' version '9.2.2'
 }
 
-group = 'si.terona'
+group = 'dev.korinetwork'
 version = '2.0.2'
 
 repositories {
@@ -54,7 +54,7 @@ processResources {
 jar { archiveClassifier = 'plain' }
 shadowJar {
     archiveClassifier = ''
-    relocate 'org.yaml.snakeyaml', 'si.terona.nullbrand.internal.yaml'
+    relocate 'org.yaml.snakeyaml', 'dev.korinetwork.nullbrand.internal.yaml'
 }
 assemble.dependsOn shadowJar
 tasks.withType(AbstractArchiveTask).configureEach {

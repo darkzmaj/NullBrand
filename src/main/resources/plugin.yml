@@ -1,7 +1,7 @@
 name: NullBrand
-main: si.terona.nullbrand.NullBrand$Spigot
+main: dev.korinetwork.nullbrand.NullBrand$Spigot
 version: ${version}
-author: Terona Studios
+author: DarkZmaj
 description: Premium server-list branding engine for Velocity, BungeeCord, Waterfall and Spigot/Paper.
 api-version: '1.21'
 folia-supported: true
