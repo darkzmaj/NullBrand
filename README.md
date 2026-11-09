@@ -1,107 +1,45 @@
 # NullBrand
 
-**NullBrand** is an ultra-lightweight plugin for all servers that removes default proxy branding and provides a clean, configurable MOTD with full HEX color support.
+**Controls how your server looks in the Minecraft server list: MOTD, icon, player count and hover text, on a proxy or a single server.**
 
-Designed to be minimal, fast, and invisible.
-
-[![discord](https://cdn.modrinth.com/data/cached_images/c97c06e73051a5a1a196babde1652b0cac4b09f4.png)](https://discord.com/invite/4NF45wy2F2)
+NullBrand answers server list pings with your own MOTD profiles, icon and player count text. You can switch profiles with a command, rotate them on a timer or show a maintenance profile. It is one small jar that runs on Velocity, BungeeCord, Paper, Spigot and Folia, and it only does work when someone pings your server.
 
 ## Features
 
-- **F3 Branding Override**
-  - Replace default proxy branding
-  - Fully configurable
-  - Supports legacy (`&`) and HEX colors
+- **MOTD profiles.** Several named profiles; pick the active one with a command.
+- **Colours.** `&` codes and hex colours everywhere, plus MiniMessage gradients on Velocity and Paper.
+- **Server icon.** A 64 by 64 PNG, set globally or per profile.
+- **Hover text and player count.** Hover lines, an optional fake online count and a custom maximum.
+- **Animations and rotation.** Animated MOTD frames and profiles that switch on a timer.
+- **Maintenance profile.** One command shows a maintenance MOTD. It only changes the server list; it does not block logins.
+- **Ping cooldown.** Repeated pings from one IP within 500 ms are left alone.
+- **Placeholders** such as `%online%`, `%time%` and `%profile%`.
 
-- **Custom MOTD**
-  - Single or multi-line MOTD
-  - HEX (`#RRGGBB`) and legacy color support
-  - Applied instantly on ping
+## Supported platforms
 
-- **Reload Command**
-  - Reload configuration without restarting
-  - Command: `/nullbrand reload`
-  - Permission-based
-
-- **Extremely Lightweight**
-  - No schedulers
-  - No background tasks
-  - No reflection
-  - Minimal memory usage
-
-## Requirements
-
-- **Velocity, BungeeCord, Folia, Paper, Spigot...** 1.16+
-- **Java** 17+
+- **Velocity and Paper:** every feature (tested on Velocity 4.2.0 and Paper 26.3).
+- **BungeeCord:** every feature except MiniMessage (tested on build 2104).
+- **Spigot and Folia:** 1.21 and newer. Folia from 2.0.2. Plain Spigot shows the MOTD, icon and maximum players only, and was not runtime-tested.
+- **Java:** 17 or newer. Current Paper and Velocity need Java 25.
+- **Not supported:** servers older than 1.21. NullBrand does not change the F3 debug screen.
 
 ## Installation
 
-1. Download the latest `NullBrand.jar`
-2. Place it in your server's `plugins/` folder
-3. Start the server once to generate the config
-4. Edit `config.yml` to your liking
-5. Reload using `/nullbrand reload`
+1. Download `NullBrand-2.0.2.jar` from one of the links below.
+2. Put it in the `plugins` folder of your proxy or server and restart.
+3. Write your MOTD lines in a profile in `config.yml`, then run `/nullbrand reload`.
 
-## Configuration (`config.yml`)
+Full setup: [Install guide](https://kori.my/docs/nullbrand/install/).
 
-```yml
-# ---------------------------------------------------
-# NullBrand Configuration
-# Lightweight MOTD system
-# ---------------------------------------------------
+## Privacy
 
-# Enables debug logging
-debug: false
+NullBrand opens no network connections of its own. It does not check for updates and sends no statistics.
 
-# ---------------------------------------------------
-# MOTD SETTINGS
-# ---------------------------------------------------
-motd:
+## Links
 
-  # Enable MOTD control
-  enabled: true
+- **Documentation:** https://kori.my/docs/nullbrand/
+- **Download:** [GitHub](https://github.com/darkzmaj/NullBrand/releases/latest), [Modrinth](https://modrinth.com/plugin/nullbrand), [SpigotMC](https://www.spigotmc.org/resources/132353/)
+- **Source code:** https://github.com/darkzmaj/NullBrand
+- **Support:** https://kori.my
 
-  # Active profile
-  profile: "default"
-
-  # Favicon file inside /plugins/NullBrand/favicons/
-  favicon: "test.png"
-
-
-
-# ---------------------------------------------------
-# MOTD PROFILES
-# ---------------------------------------------------
-# NOTE: Hover will only work on Proxies, and it does not support HEX Colors!
-
-profiles:
-
-  # Global fallback profile
-  global:
-    lines:
-      - "&7Welcome to our server"
-      - "&fHave fun!"
-
-  # Default server MOTD
-  default:
-    lines:
-      - "&5Null&dBrand"
-      - "&7This is line 2"
-    hover:
-      enabled: false
-      lines:
-        - "&7Welcome to &5Null&dBrand"
-        - "&7Running powerful infrastructure"
-
-  # Example event profile
-  event:
-    lines:
-      - "&6Special Event Live!"
-      - "&eJoin today!"
-    hover:
-      enabled: true
-      lines:
-        - "&6Limited time event"
-        - "&eDon't miss it!"
-
-```
+Free to use, with the source code on GitHub. Made by DarkZmaj for KORI Network.
